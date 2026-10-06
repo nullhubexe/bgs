@@ -1,16 +1,15 @@
 while true do
-    local egg = workspace:FindFirstChild("Egg")
-    if egg then
-        egg:Destroy()
+    local e = workspace:FindFirstChild("Egg")
+    if e then
+        e:Destroy()
     end
-    task.wait()
-end
-while true do 
-local Event = game:GetService("ReplicatedStorage").NetworkRemoteEvent
-Event:FireServer(
-    "PurchaseEgg",
-    "Wayfarer Egg",
-    true
-)
-task.wait(0.1)
+    
+    local Event = game:GetService("ReplicatedStorage").NetworkRemoteEvent
+    Event:FireServer(
+        "PurchaseEgg",
+        "Wayfarer Egg",
+        true
+    )
+    
+    task.wait() 
 end
