@@ -7,7 +7,7 @@ while true do
     local Event = game:GetService("ReplicatedStorage").NetworkRemoteEvent
     Event:FireServer(
         "PurchaseEgg",
-        "Wayfarer Egg",
+        "Malevolent Egg",
         true
     )
     
