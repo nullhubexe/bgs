@@ -1,0 +1,97 @@
+-- LocalScript (place in StarterPlayerScripts or StarterCharacterScripts)
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local rootPart = character:WaitForChild("HumanoidRootPart")
+
+-- Positions to travel to
+local positions = {
+    Vector3.new(6877, 517, -3896),
+    Vector3.new(6846, 517, -3881),
+    Vector3.new(6829, 517, -3912),
+    Vector3.new(6835, 499, -4151),
+    Vector3.new(6880, 499, -4200),
+    Vector3.new(7009, 507, -4253),
+    Vector3.new(7029, 506, -4228),
+    Vector3.new(7012, 506, -4203),
+    Vector3.new(7012, 518, -4017),
+    Vector3.new(7001, 518, -4050),
+    Vector3.new(6986, 518, -4003),
+}
+
+-- Settings
+local SPEED = 50          -- studs per second
+local THRESHOLD = 2       -- how close before moving to next point
+local WAIT_TIME = 0.5     -- seconds to pause at each waypoint
+local RETURN_TO_ORIGIN = true
+local COOLDOWN = 61       -- seconds between loop cycles
+
+-- Save original movement settings so we can restore them
+local originCFrame = rootPart.CFrame
+local originalWalkSpeed = humanoid.WalkSpeed
+local originalJumpPower = humanoid.JumpPower
+local originalAutoRotate = humanoid.AutoRotate
+
+local function moveTo(targetPosition)
+    while true do
+        local currentPos = rootPart.Position
+        local direction = targetPosition - currentPos
+        local distance = direction.Magnitude
+
+        if distance <= THRESHOLD then
+            break
+        end
+
+        local step = direction.Unit * math.min(SPEED * RunService.Heartbeat:Wait(), distance)
+        rootPart.CFrame = CFrame.new(currentPos + step)
+    end
+end
+
+while true do
+    -- Make sure character is still valid
+    if not character.Parent or not rootPart.Parent or humanoid.Health <= 0 then
+        character = player.Character or player.CharacterAdded:Wait()
+        humanoid = character:WaitForChild("Humanoid")
+        rootPart = character:WaitForChild("HumanoidRootPart")
+        originCFrame = rootPart.CFrame
+    end
+
+    -- Save origin and original settings for this cycle
+    originCFrame = rootPart.CFrame
+    originalWalkSpeed = humanoid.WalkSpeed
+    originalJumpPower = humanoid.JumpPower
+    originalAutoRotate = humanoid.AutoRotate
+
+    -- Disable default movement while script runs
+    humanoid.WalkSpeed = 0
+    humanoid.JumpPower = 0
+    humanoid.AutoRotate = false
+
+    -- Move through each position in order
+    for i, pos in ipairs(positions) do
+        print(string.format("Moving to waypoint %d: %s", i, tostring(pos)))
+        moveTo(pos)
+        print(string.format("Reached waypoint %d, waiting %.1fs", i, WAIT_TIME))
+        task.wait(WAIT_TIME)
+    end
+
+    print("All waypoints reached!")
+
+    -- Teleport back to origin
+    if RETURN_TO_ORIGIN then
+        rootPart.CFrame = originCFrame
+        print("Teleported back to origin.")
+    end
+
+    -- Restore movement
+    humanoid.WalkSpeed = originalWalkSpeed
+    humanoid.JumpPower = originalJumpPower
+    humanoid.AutoRotate = originalAutoRotate
+
+    print(string.format("Movement restored — waiting %d seconds before next cycle...", COOLDOWN))
+    task.wait(COOLDOWN)
+end
